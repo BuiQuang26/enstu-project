@@ -1,0 +1,7 @@
+cloud:
+  aws:
+    accessKey: $accessKey
+    secretKey: $secretKey
+    bucketName: s3-enstu
+    clientRegion: $clientRegion
+    s3Domain: $s3Domain
