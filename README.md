@@ -16,4 +16,31 @@ Enstu is a social network for technical students is a place for students to be p
 
 ## Build Project
 
-## Run project
+## Run project on local
+
+### Install java version 11
+
+Download page: https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html
+
+check java version
+```bash
+java --version
+```
+
+### Install mysql server
+
+Download page: https://dev.mysql.com/downloads/installer/
+
+- running on address: `localhost:3306`
+- username: root
+- password: root
+
+### Run backend service
+
+```bash
+java -jar target/enstu-project-0.0.1-SNAPSHOT.jar
+```
+
+- API swagger document: http://localhost:8080/swagger-ui.html
+
+
