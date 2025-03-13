@@ -62,7 +62,7 @@ public class PostService {
             if(user == null) return new ResponseEntity<>(new HttpResponseMessage(false, 400,
                     "access user not found"), HttpStatus.BAD_REQUEST);
 
-            if(post.getTagName() == null || post.getTagName().equals("")) return new ResponseEntity<>(new HttpResponseMessage(false,
+            if(post.getTagName() == null || post.getTagName().isEmpty()) return new ResponseEntity<>(new HttpResponseMessage(false,
                     400, "tag is not found"), HttpStatus.BAD_REQUEST);
 
             Tag tag = tagRepository.findByTagName(post.getTagName()).orElse(null);
@@ -120,7 +120,7 @@ public class PostService {
                     "access user not post owner"), HttpStatus.BAD_REQUEST);
 
             //update title
-            if(postReq.getTitle() != null && !postReq.getTitle().trim().equals("")){
+            if(postReq.getTitle() != null && !postReq.getTitle().trim().isEmpty()){
                 post.setTitle(postReq.getTitle().trim());
             }
 
@@ -219,8 +219,9 @@ public class PostService {
             postRepository.delete(post);
 
             //update post count
-            if(tag.getPostsCount() > 0)
-            tag.setPostsCount(tag.getPostsCount() - 1);
+            if(tag.getPostsCount() > 0) {
+                tag.setPostsCount(tag.getPostsCount() - 1);
+            }
             tagRepository.save(tag);
             return new ResponseEntity<>(new HttpResponse(true, 200,
                     "delete post success", null), HttpStatus.OK);
@@ -362,8 +363,9 @@ public class PostService {
 
             user.unlikedPost(post);
             userRepository.save(user);
-            if(post.getLikes_count() > 0)
-            post.setLikes_count(post.getLikes_count() - 1);
+            if(post.getLikes_count() > 0) {
+                post.setLikes_count(post.getLikes_count() - 1);
+            }
             postRepository.save(post);
 
             return new ResponseEntity<>(new HttpResponse(true, 200,
