@@ -6,11 +6,11 @@ Enstu is a social network for technical students is a place for students to be p
 
 ### Backend
 
-- Technical technologies: 
+- Technologies: Spring boot, Spring Framework, Mysql, JWT, Hibernate
 
 ### Frontend
 
-- Technical technologies: 
+- Technologies: Nodejs, Reactjs, HTML/CSS/JS
 
 ## functional
 
