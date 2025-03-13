@@ -1,0 +1,51 @@
+.home-main {
+    margin-top: 63px;
+    background-color: #f2f3f3;
+    .main {
+        display: flex;
+        min-height: 100vh;
+        .main-post-top {
+            margin: 16px 0 32px 0;
+            .title {
+                font-size: 3.6rem;
+                font-weight: 700;
+            }
+
+            .topic {
+                font-size: 1.3rem;
+                font-weight: 500;
+
+                .tagname {
+                    padding: 4px 12px;
+                    background-color: $sub-color;
+                    color: var(--bs-white);
+                    border-radius: 50px;
+                    margin-left: 4px;
+                }
+            }
+        }
+
+        .post-list {
+            padding-bottom: 56px;
+            .btn-more-posts {
+                outline: none;
+                font-size: 1.5rem;
+                background: none;
+            }
+        }
+
+        .sidebar-left-wrapper {
+            padding: 12px 12px 12px 0;
+        }
+
+        .post-list-container {
+            padding-left: 12px;
+        }
+
+        /* width */
+        ::-webkit-scrollbar {
+            width: 100px;
+            display: none;
+        }
+    }
+}

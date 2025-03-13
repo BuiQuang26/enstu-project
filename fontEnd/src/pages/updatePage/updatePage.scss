@@ -1,0 +1,116 @@
+.update-page {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f3f9ff;
+
+    .update-page-container {
+        display: flex;
+        .update-page-left {
+            .top {
+                align-items: center;
+                display: flex;
+                height: 62px;
+                position: sticky;
+                top: 0;
+                .img-logo {
+                    width: 42px;
+                    height: 42px;
+                    object-fit: cover;
+                }
+            }
+        }
+        .form-update-wrapper {
+            padding: 24px 8px;
+
+            .form-update {
+                background-color: #fff;
+                padding: 16px;
+                border-radius: 12px;
+                box-shadow: 0 6px 12px #e3e3e3;
+                max-width: 856px;
+                font-size: 1.3rem;
+
+                .form-update-top {
+                    display: flex;
+                    padding-bottom: 24px;
+
+                    .avatar-wrapper {
+                        position: relative;
+                        margin-right: 12px;
+                        border-radius: 100px;
+                        overflow: hidden;
+                        cursor: pointer;
+
+                        .avatar {
+                            width: 80px;
+                            height: 80px;
+                            object-fit: cover;
+                        }
+
+                        &:hover .filler {
+                            display: flex;
+                        }
+
+                        .filler {
+                            display: none;
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 100%;
+                            background-color: rgba(118, 118, 118, 0.311);
+                            align-items: center;
+                            justify-content: center;
+
+                            i {
+                                font-size: large;
+                                color: #e3e3e3;
+                            }
+                        }
+                    }
+
+                    .text-content {
+                        .username {
+                            font-size: 3.2rem;
+                            font-weight: 600;
+                            display: block;
+                        }
+
+                        .email {
+                            font-size: 1.8rem;
+                        }
+                    }
+                }
+
+                .form-control {
+                    font-size: 1.5rem;
+                }
+
+                select {
+                    font-size: 1.5rem;
+                }
+
+                textarea {
+                    height: 156px;
+                    resize: none;
+                }
+            }
+        }
+    }
+
+    .modal-form-update-avatar {
+        .preview-avatar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            img {
+                width: 136px;
+                height: 136px;
+                object-fit: cover;
+                border-radius: 1000px;
+                border: 1px solid #f3f3f3;
+            }
+        }
+    }
+}

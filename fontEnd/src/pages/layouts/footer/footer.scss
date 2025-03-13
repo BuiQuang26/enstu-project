@@ -1,0 +1,50 @@
+.footer {
+    background-color: #181821;
+    min-height: 500px;
+    color: #ffffff;
+    padding: 66px 0;
+    font-size: 1.6rem;
+
+    .footer-list {
+        .footer-item-top {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+            .logo {
+                width: 60px;
+                height: 60px;
+                margin-right: 8px;
+            }
+
+            .text-content {
+                display: flex;
+                flex-direction: column;
+
+                .app-name {
+                    font-weight: 700;
+                    font-size: 2rem;
+                }
+
+                .app-slogan {
+                    font-weight: 400;
+                    font-size: 1.6rem;
+                    opacity: 0.8;
+                }
+            }
+        }
+
+        .footer-item {
+            .text-content {
+                opacity: 0.7;
+            }
+        }
+    }
+
+    .footer-bottom {
+        margin-top: 96px;
+        display: flex;
+        .copy-right {
+            opacity: 0.6;
+        }
+    }
+}

@@ -1,0 +1,40 @@
+@import "../layouts/header/header.scss";
+
+.home-container {
+    padding: 0 8px;
+    margin: auto;
+    background: none;
+}
+
+.home-header {
+    border-bottom: 1px solid #e3e3e3;
+    background-color: var(--bs-white);
+}
+
+.sticky {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 20;
+}
+
+.modal-update {
+    font-size: 1.5rem;
+
+    label {
+        font-weight: 600;
+    }
+
+    input {
+        font-size: 1.4rem;
+    }
+
+    .btn-check-email {
+        width: 126px;
+        height: 32px;
+    }
+    .btn-update-email {
+        height: 32px;
+        width: 160px;
+    }
+}
