@@ -36,6 +36,7 @@ const PostEditor = () => {
     const [imageInput, setImageInput] = useState();
     const [imageList, setImageList] = useState([]);
     const [tagList, setTagList] = useState([]);
+    const textareaRef = useRef(null);
 
     const [isAuth, setIsAuth] = useState(true);
 
@@ -291,6 +292,233 @@ const PostEditor = () => {
         setHoverTextStyle(false);
     };
 
+    const handleBold = () => {
+        const textarea = textareaRef.current;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = textContent.slice(start, end);
+
+        if (selectedText) {
+            let newText;
+            let newStart, newEnd;
+
+            // Kiểm tra trường hợp bôi đen cả **text** hoặc chỉ text trong **text**
+            const isBoldSelected = selectedText.startsWith('**') && selectedText.endsWith('**') && selectedText.length >= 4;
+            const isBoldAround = textContent.slice(start - 2, start) === '**' && textContent.slice(end, end + 2) === '**' && !isBoldSelected;
+
+            if (isBoldSelected) {
+                // Bôi đen cả **text**: xóa ** ở hai đầu
+                newText = textContent.slice(0, start) + selectedText.slice(2, -2) + textContent.slice(end);
+                newStart = start;
+                newEnd = end - 4; // Giảm 4 vì xóa **
+            } else if (isBoldAround) {
+                // Bôi đen text trong **text**: xóa ** ở ngoài
+                newText = textContent.slice(0, start - 2) + selectedText + textContent.slice(end + 2);
+                newStart = start - 2;
+                newEnd = end - 2;
+            } else {
+                // Thêm in đậm: thêm ** ở hai đầu
+                newText = textContent.slice(0, start) + `**${selectedText}**` + textContent.slice(end);
+                newStart = start;
+                newEnd = end + 4; // Tăng 4 vì thêm **
+            }
+
+            setTextContent(newText);
+            setTimeout(() => {
+                textarea.selectionStart = newStart;
+                textarea.selectionEnd = newEnd;
+            }, 0);
+        }
+    };
+
+    const handleItalic = () => {
+        const textarea = textareaRef.current;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = textContent.slice(start, end);
+
+        if (selectedText) {
+            let newText;
+            let newStart, newEnd;
+
+            // Kiểm tra trường hợp bôi đen cả *text* hoặc chỉ text trong *text*
+            const isItalicSelected = selectedText.startsWith('*') && selectedText.endsWith('*') &&
+                !selectedText.startsWith('**') && !selectedText.endsWith('**') && selectedText.length >= 2;
+            const isItalicAround = textContent.slice(start - 1, start) === '*' && textContent.slice(end, end + 1) === '*' &&
+                textContent.slice(start - 2, start) !== '**' && textContent.slice(end, end + 2) !== '**' && !isItalicSelected;
+
+            if (isItalicSelected) {
+                // Bôi đen cả *text*: xóa * ở hai đầu
+                newText = textContent.slice(0, start) + selectedText.slice(1, -1) + textContent.slice(end);
+                newStart = start;
+                newEnd = end - 2; // Giảm 2 vì xóa *
+            } else if (isItalicAround) {
+                // Bôi đen text trong *text*: xóa * ở ngoài
+                newText = textContent.slice(0, start - 1) + selectedText + textContent.slice(end + 1);
+                newStart = start - 1;
+                newEnd = end - 1;
+            } else {
+                // Thêm in nghiêng: thêm * ở hai đầu
+                newText = textContent.slice(0, start) + `*${selectedText}*` + textContent.slice(end);
+                newStart = start;
+                newEnd = end + 2; // Tăng 2 vì thêm *
+            }
+
+            setTextContent(newText);
+            setTimeout(() => {
+                textarea.selectionStart = newStart;
+                textarea.selectionEnd = newEnd;
+            }, 0);
+        }
+    };
+
+    const handleStrikethrough = () => {
+        const textarea = textareaRef.current;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = textContent.slice(start, end);
+
+        if (selectedText) {
+            let newText;
+            let newStart, newEnd;
+
+            // Kiểm tra trường hợp bôi đen cả ~~text~~ hoặc chỉ text trong ~~text~~
+            const isStrikethroughSelected = selectedText.startsWith('~~') && selectedText.endsWith('~~') && selectedText.length >= 4;
+            const isStrikethroughAround = textContent.slice(start - 2, start) === '~~' && textContent.slice(end, end + 2) === '~~' && !isStrikethroughSelected;
+
+            if (isStrikethroughSelected) {
+                // Bôi đen cả ~~text~~: xóa ~~ ở hai đầu
+                newText = textContent.slice(0, start) + selectedText.slice(2, -2) + textContent.slice(end);
+                newStart = start;
+                newEnd = end - 4; // Giảm 4 vì xóa ~~
+            } else if (isStrikethroughAround) {
+                // Bôi đen text trong ~~text~~: xóa ~~ ở ngoài
+                newText = textContent.slice(0, start - 2) + selectedText + textContent.slice(end + 2);
+                newStart = start - 2;
+                newEnd = end - 2;
+            } else {
+                // Thêm gạch ngang: thêm ~~ ở hai đầu
+                newText = textContent.slice(0, start) + `~~${selectedText}~~` + textContent.slice(end);
+                newStart = start;
+                newEnd = end + 4; // Tăng 4 vì thêm ~~
+            }
+
+            setTextContent(newText);
+            setTimeout(() => {
+                textarea.selectionStart = newStart;
+                textarea.selectionEnd = newEnd;
+            }, 0);
+        }
+    };
+
+    const handleUnorderedList = () => {
+        const textarea = textareaRef.current;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = textContent.slice(start, end);
+
+        if (selectedText) {
+            let newText;
+            let newStart = start;
+            let newEnd = end;
+
+            // Tách các dòng
+            const lines = selectedText.split('\n');
+            let allLinesHaveBullet = true;
+
+            // Kiểm tra xem tất cả các dòng đã có * chưa
+            for (const line of lines) {
+                if (line.trim() && !line.trim().startsWith('* ')) {
+                    allLinesHaveBullet = false;
+                    break;
+                }
+            }
+
+            // Xử lý từng dòng
+            const newLines = lines.map((line) => {
+                if (!line.trim()) return line; // Giữ dòng trống
+                if (allLinesHaveBullet) {
+                    // Bỏ * nếu đã có
+                    return line.replace(/^\* /, '');
+                } else {
+                    // Thêm * nếu chưa có
+                    return `* ${line}`;
+                }
+            });
+
+            // Tính toán vị trí con trỏ mới
+            if (allLinesHaveBullet) {
+                newEnd -= lines.reduce((sum, line) => sum + (line.trim().startsWith('* ') ? 2 : 0), 0);
+            } else {
+                newEnd += lines.reduce((sum, line) => sum + (line.trim() ? 2 : 0), 0);
+            }
+
+            // Ghép lại văn bản
+            newText = textContent.slice(0, start) + newLines.join('\n') + textContent.slice(end);
+            setTextContent(newText);
+
+            setTimeout(() => {
+                textarea.selectionStart = newStart;
+                textarea.selectionEnd = newEnd;
+            }, 0);
+        }
+    };
+
+    const handleHeading = (level) => {
+        const textarea = textareaRef.current;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = textContent.slice(start, end);
+
+        if (selectedText) {
+            let newText;
+            let newStart = start;
+            let newEnd = end;
+
+            const lines = selectedText.split('\n');
+            const headingPrefix = '#'.repeat(level) + ' ';
+            const headingLength = headingPrefix.length;
+
+            // Kiểm tra xem tất cả các dòng không trống đã có tiêu đề level này chưa
+            let allLinesHaveHeading = true;
+            for (const line of lines) {
+                if (line.trim() && !line.trim().startsWith(headingPrefix)) {
+                    allLinesHaveHeading = false;
+                    break;
+                }
+            }
+
+            // Xử lý từng dòng
+            const newLines = lines.map((line) => {
+                if (!line.trim()) return line; // Giữ dòng trống
+                if (allLinesHaveHeading) {
+                    // Bỏ tiêu đề
+                    return line.replace(new RegExp(`^${headingPrefix}`), '');
+                } else {
+                    // Thêm tiêu đề (xóa các # cũ nếu có)
+                    const cleanLine = line.replace(/^#+ /, '');
+                    return `${headingPrefix}${cleanLine}`;
+                }
+            });
+
+            // Cập nhật vị trí con trỏ
+            if (allLinesHaveHeading) {
+                newEnd -= lines.reduce((sum, line) => sum + (line.trim().startsWith(headingPrefix) ? headingLength : 0), 0);
+            } else {
+                newEnd += lines.reduce((sum, line) => sum + (line.trim() ? headingLength : 0), 0);
+                newEnd -= lines.reduce((sum, line) => sum + (line.match(/^#+ /)?.[0].length || 0), 0); // Trừ # cũ
+            }
+
+            newText = textContent.slice(0, start) + newLines.join('\n') + textContent.slice(end);
+            setTextContent(newText);
+
+            setTimeout(() => {
+                textarea.selectionStart = newStart;
+                textarea.selectionEnd = newEnd;
+            }, 0);
+        }
+    };
+
     return (
         <div className="post-editor">
             {!isAuth && <Navigate to={"/login"} />}
@@ -390,123 +618,31 @@ const PostEditor = () => {
                                     hoverTextStyle ? "" : "hidden"
                                 }`}
                             >
-                                <li
-                                    className="sub-editor-item h1"
-                                    onClick={() => {
-                                        setTextContent(
-                                            `${textContent}${
-                                                textContent
-                                                    ? "\n# Text"
-                                                    : "# Text"
-                                            }`
-                                        );
-                                    }}
-                                >
+                                <li className="sub-editor-item h1" onClick={() => handleHeading(1)}>
                                     H1
                                 </li>
-                                <li
-                                    className="sub-editor-item h2"
-                                    onClick={() => {
-                                        setTextContent(
-                                            `${textContent}${
-                                                textContent
-                                                    ? "\n## Text"
-                                                    : "## Text"
-                                            }`
-                                        );
-                                    }}
-                                >
+                                <li className="sub-editor-item h2" onClick={() => handleHeading(2)}>
                                     H2
                                 </li>
-                                <li
-                                    className="sub-editor-item h3"
-                                    onClick={() => {
-                                        setTextContent(
-                                            `${textContent}${
-                                                textContent
-                                                    ? "\n### Text"
-                                                    : "### Text"
-                                            }`
-                                        );
-                                    }}
-                                >
+                                <li className="sub-editor-item h3" onClick={() => handleHeading(3)}>
                                     H3
                                 </li>
-                                <li
-                                    className="sub-editor-item h4"
-                                    onClick={() => {
-                                        setTextContent(
-                                            `${textContent}${
-                                                textContent
-                                                    ? "\n#### Text"
-                                                    : "#### Text"
-                                            }`
-                                        );
-                                    }}
-                                >
+                                <li className="sub-editor-item h4" onClick={() => handleHeading(4)}>
                                     H4
                                 </li>
                             </ul>
                         </li>
-                        <li
-                            className="nav-editor-item"
-                            onClick={() => {
-                                setTextContent(
-                                    `${textContent}${
-                                        textContent ? " **Text**" : "**Text**"
-                                    }`
-                                );
-                            }}
-                        >
+                        <li className="nav-editor-item" onClick={handleBold}>
                             <i className="bi bi-type-bold"></i>
                         </li>
-                        <li
-                            className="nav-editor-item"
-                            onClick={() => {
-                                setTextContent(
-                                    `${textContent}${
-                                        textContent ? " *Text*" : "*Text*"
-                                    }`
-                                );
-                            }}
-                        >
+                        <li className="nav-editor-item" onClick={handleItalic}>
                             <i className="bi bi-type-italic"></i>
                         </li>
-                        <li
-                            className="nav-editor-item"
-                            onClick={() => {
-                                setTextContent(
-                                    `${textContent}${
-                                        textContent ? " ~~Text~~" : "~~Text~~"
-                                    }`
-                                );
-                            }}
-                        >
+                        <li className="nav-editor-item" onClick={handleStrikethrough}>
                             <i className="bi bi-type-strikethrough"></i>
                         </li>
-                        <li
-                            className="nav-editor-item"
-                            onClick={() => {
-                                setTextContent(
-                                    `${textContent}${
-                                        textContent ? "\n* Text" : "* Text"
-                                    }`
-                                );
-                            }}
-                        >
+                        <li className="nav-editor-item" onClick={handleUnorderedList}>
                             <i className="bi bi-list-ul"></i>
-                        </li>
-                        <li
-                            className="nav-editor-item"
-                            onClick={() => {
-                                setTextContent(
-                                    `${textContent}${
-                                        textContent ? "\n1. Text" : "1. Text"
-                                    }`
-                                );
-                            }}
-                        >
-                            <i className="bi bi-list-ol"></i>
                         </li>
                         <li
                             className="nav-editor-item"
@@ -577,6 +713,8 @@ const PostEditor = () => {
                 <div className="post-edit-content">
                     <div className="grid__column-6 editor-form-input-wrapper">
                         <textarea
+                            id="editor"
+                            ref={textareaRef}
                             type="text"
                             className="editor-form-input"
                             name="textContentInput"
