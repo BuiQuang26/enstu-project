@@ -6,18 +6,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import vn.quang.enstu.entities.University;
 import vn.quang.enstu.models.HttpResponse;
 import vn.quang.enstu.models.HttpResponseMessage;
 import vn.quang.enstu.repositories.UniversityRepository;
 
 @Service
+@Transactional
 public class UniversityService {
 
     private final static Logger logger = LogManager.getLogger(UniversityService.class);
+    private final UniversityRepository universityRepository;
 
-    @Autowired
-    private UniversityRepository universityRepository;
+    public UniversityService(
+            UniversityRepository universityRepository
+    ) {
+        this.universityRepository = universityRepository;
+    }
 
     public ResponseEntity<?> create(University university) {
         try {
@@ -38,6 +44,7 @@ public class UniversityService {
         }
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getAll() {
         try {
             return new ResponseEntity<>(new HttpResponse(true, 200,

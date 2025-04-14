@@ -10,12 +10,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import vn.quang.enstu.entities.Tag;
 import vn.quang.enstu.models.HttpResponse;
 import vn.quang.enstu.models.HttpResponseMessage;
 import vn.quang.enstu.repositories.TagRepository;
 
 @Service
+@Transactional
 public class HomeService {
 
     private final static Logger logger = LogManager.getLogger(HomeService.class);
@@ -23,6 +25,7 @@ public class HomeService {
     @Autowired
     private TagRepository tagRepository;
 
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getTags(int page_number, int page_size) {
         try {
             Sort sort = Sort.by("postsCount").descending();

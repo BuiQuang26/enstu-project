@@ -3,7 +3,6 @@ package vn.quang.enstu.services;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -12,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import vn.quang.enstu.entities.Comment;
 import vn.quang.enstu.entities.EmailConfirmOtp;
@@ -22,9 +22,7 @@ import vn.quang.enstu.models.*;
 import vn.quang.enstu.repositories.*;
 import vn.quang.enstu.security.GenerateJWT;
 import vn.quang.enstu.helper.mail.MailSenderService;
-import vn.quang.enstu.helper.storage.StorageService;
 
-import javax.transaction.Transactional;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Date;
@@ -37,10 +35,6 @@ public class UserService {
 
     private final static Logger logger = LogManager.getLogger(UserService.class);
     private static final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-
-    @Value("${cloud.aws.s3Domain}")
-    private String s3Domain;
-
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepo;
     private final UniversityRepository universityRepo;
@@ -49,13 +43,18 @@ public class UserService {
     private final EmailConfirmOtpRepository emailConfirmOtpRepo;
     private final S3StorageService s3StorageService;
 
-    @Autowired
-    public UserService(UserRepository userRepository,
-                       RefreshTokenRepository refreshTokenRepo,
-                       UniversityRepository universityRepo,
-                       CommentRepository commentRepo,
-                       MailSenderService mailService,
-                       EmailConfirmOtpRepository emailConfirmOtpRepo, S3StorageService s3StorageService) {
+    @Value("${cloud.aws.s3Domain}")
+    private String s3Domain;
+
+    public UserService(
+        UserRepository userRepository,
+        RefreshTokenRepository refreshTokenRepo,
+        UniversityRepository universityRepo,
+        CommentRepository commentRepo,
+        MailSenderService mailService,
+        EmailConfirmOtpRepository emailConfirmOtpRepo,
+        S3StorageService s3StorageService
+    ) {
         this.userRepository = userRepository;
         this.refreshTokenRepo = refreshTokenRepo;
         this.universityRepo = universityRepo;
@@ -322,9 +321,13 @@ public class UserService {
             String avatar = s3StorageService.storeFile(newFile,dirAvatar + fileName, true);
 
             //delete old avatar
-            newFile.delete();
+            boolean delete = newFile.delete();
+            if (!delete) {
+                logger.error("delete file error");
+            }
+
             if(oldAvatar != null)
-            s3StorageService.deleteFile(oldAvatar.substring(s3Domain.length()));
+                s3StorageService.deleteFile(oldAvatar.substring(s3Domain.length()));
 
             user.setAvatar(avatar);
             userRepository.save(user);
@@ -352,7 +355,7 @@ public class UserService {
 
     public ResponseEntity<?> findUserByFullName(String full_name, int pageNumber, int pageSize) {
         try{
-            if(full_name == null || full_name.trim().equals("")) return new ResponseEntity<>(new HttpResponseMessage(false, 400,
+            if(full_name == null || full_name.trim().isEmpty()) return new ResponseEntity<>(new HttpResponseMessage(false, 400,
                     "query with full-name string invalid"), HttpStatus.BAD_REQUEST);
 
             Pageable pageable = PageRequest.of(pageNumber, pageSize);
@@ -368,9 +371,10 @@ public class UserService {
         }
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<?> findUserByUniversityCode(String universityAbbreviation,int page_number, int page_size){
         try{
-            if( universityAbbreviation == null || universityAbbreviation.trim().equals("")) return new ResponseEntity<>(new HttpResponseMessage(false, 400,
+            if( universityAbbreviation == null || universityAbbreviation.trim().isEmpty()) return new ResponseEntity<>(new HttpResponseMessage(false, 400,
                     "university code string invalid"), HttpStatus.BAD_REQUEST);
             Pageable pageable = PageRequest.of(page_number, page_size);
             Page<User> userPage = userRepository.findByUniversityAbbreviation(universityAbbreviation, pageable);
@@ -400,6 +404,7 @@ public class UserService {
         }
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<?> findUserById(Long user_id) {
         try {
             User user = userRepository.findById(user_id).orElse(null);
@@ -416,6 +421,7 @@ public class UserService {
         }
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getCommentsOfUser(Long user_id, int page_number, int page_size) {
         try {
             User user = userRepository.findById(user_id).orElse(null);
@@ -441,19 +447,7 @@ public class UserService {
                     "email used"), HttpStatus.BAD_REQUEST);
 
             //send otp
-            String otp = mailService.sendOTP(email);
-            if(otp == null) return new ResponseEntity<>(new HttpResponseMessage(false, 412, //412  send email failed
-                    "send otp failed"), HttpStatus.BAD_REQUEST);
-            //save otp
-            EmailConfirmOtp emailConfirmOtp = emailConfirmOtpRepo.findByEmail(email).orElse(null);
-            if(emailConfirmOtp == null){
-                emailConfirmOtp = new EmailConfirmOtp(email, otp, new Date(System.currentTimeMillis() + 5*60*1000));
-            }else {
-                emailConfirmOtp.setOtp(otp);
-                emailConfirmOtp.setExpiresAt(new Date(System.currentTimeMillis() + 5*60*1000));
-            }
-
-            emailConfirmOtpRepo.save(emailConfirmOtp);
+            this.handleSendOtp(email);
             return new ResponseEntity<>(new HttpResponseMessage(true, 200,
                     "otp was send to your email"), HttpStatus.OK);
         }catch (Exception e){
@@ -497,19 +491,7 @@ public class UserService {
                     "Email is not registered"), HttpStatus.NOT_FOUND);
 
             //send otp
-            String otp = mailService.sendOTP(email);
-            if(otp == null) return new ResponseEntity<>(new HttpResponseMessage(false, 412, //412  send email failed
-                    "send otp failed"), HttpStatus.BAD_REQUEST);
-            //save otp
-            EmailConfirmOtp emailConfirmOtp = emailConfirmOtpRepo.findByEmail(email).orElse(null);
-            if(emailConfirmOtp == null){
-                emailConfirmOtp = new EmailConfirmOtp(email, otp, new Date(System.currentTimeMillis() + 5*60*1000));
-            }else {
-                emailConfirmOtp.setOtp(otp);
-                emailConfirmOtp.setExpiresAt(new Date(System.currentTimeMillis() + 5*60*1000));
-            }
-
-            emailConfirmOtpRepo.save(emailConfirmOtp);
+            this.handleSendOtp(email);
             return new ResponseEntity<>(new HttpResponseMessage(true, 200,
                     "otp was send to your email"), HttpStatus.OK);
 
@@ -518,5 +500,19 @@ public class UserService {
             return new ResponseEntity<>(new HttpResponseMessage(false, 501,
                     "Not implemented"), HttpStatus.NOT_IMPLEMENTED);
         }
+    }
+
+    public void handleSendOtp(String email) {
+        //send otp
+        String otp = mailService.sendOTP(email);
+        //save otp
+        EmailConfirmOtp emailConfirmOtp = emailConfirmOtpRepo.findByEmail(email).orElse(null);
+        if(emailConfirmOtp == null){
+            emailConfirmOtp = new EmailConfirmOtp(email, otp, new Date(System.currentTimeMillis() + 5*60*1000));
+        }else {
+            emailConfirmOtp.setOtp(otp);
+            emailConfirmOtp.setExpiresAt(new Date(System.currentTimeMillis() + 5*60*1000));
+        }
+        emailConfirmOtpRepo.save(emailConfirmOtp);
     }
 }

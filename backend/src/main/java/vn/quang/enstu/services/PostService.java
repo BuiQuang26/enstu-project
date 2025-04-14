@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import vn.quang.enstu.entities.*;
 import vn.quang.enstu.helper.storage.S3StorageService;
@@ -25,33 +26,38 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class PostService {
+
+    private final static Logger logger = LogManager.getLogger(PostService.class);
+    private final PostRepository postRepository;
+    private final UserRepository userRepository;
+    private final PostImageRepository postImageRepository;
+    private final TagRepository tagRepository;
+    private final LikeRepository likeRepo;
+    private final CommentRepository commentRepo;
+    private final S3StorageService s3StorageService;
 
     @Value("${cloud.aws.s3Domain}")
     private String s3Domain;
 
-    @Autowired
-    private PostRepository postRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PostImageRepository postImageRepository;
-
-    @Autowired
-    private TagRepository tagRepository;
-
-    @Autowired
-    private LikeRepository likeRepo;
-
-    @Autowired
-    private CommentRepository commentRepo;
-
-    @Autowired
-    private S3StorageService s3StorageService;
-
-    private final static Logger logger = LogManager.getLogger(PostService.class);
+    public PostService(
+            PostRepository postRepository,
+            UserRepository userRepository,
+            PostImageRepository postImageRepository,
+            TagRepository tagRepository,
+            LikeRepository likeRepo,
+            CommentRepository commentRepo,
+            S3StorageService s3StorageService
+    ) {
+        this.postRepository = postRepository;
+        this.userRepository = userRepository;
+        this.postImageRepository = postImageRepository;
+        this.tagRepository = tagRepository;
+        this.likeRepo = likeRepo;
+        this.commentRepo = commentRepo;
+        this.s3StorageService = s3StorageService;
+    }
 
     public ResponseEntity<?> createPost(Long user_id, Post post, MultipartFile[] fileImages) {
         try {
@@ -163,6 +169,7 @@ public class PostService {
         }
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getAll(int page_number, int page_size) {
         try {
             Sort sort = Sort.by("createAt").descending();
@@ -178,6 +185,7 @@ public class PostService {
         }
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getPostById(Long postID) {
         try {
             Post post = postRepository.findById(postID).orElse(null);
@@ -268,6 +276,7 @@ public class PostService {
         }
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getAllPostByTagName(String tagName, int page_number, int page_size) {
         try {
             Pageable pageable = PageRequest.of(page_number, page_size);
@@ -283,6 +292,7 @@ public class PostService {
         }
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<?> searchPost(String text) {
         try {
             List<Post> postsTitle = postRepository.findByTitleContains(text);
@@ -300,6 +310,7 @@ public class PostService {
         }
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<?> checkLiked(Long user_id, Long post_id){
         try {
             User user = userRepository.findById(user_id).orElse(null);
@@ -377,6 +388,7 @@ public class PostService {
         }
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getLikedPost(Long user_id) {
         try {
             User user = userRepository.findById(user_id).orElse(null);
@@ -394,6 +406,7 @@ public class PostService {
         }
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getUsersLiked(Long post_id) {
         try {
             Post post = postRepository.findById(post_id).orElse(null);
@@ -434,6 +447,7 @@ public class PostService {
         }
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getCommentsOfPost(Long post_id, int page_number, int page_size) {
         try {
             Post post = postRepository.findById(post_id).orElse(null);
@@ -514,6 +528,7 @@ public class PostService {
         }
     }
 
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getPostByUserId(Long userID, Long user_id_token) {
         try {
             User user = userRepository.findById(userID).orElse(null);
