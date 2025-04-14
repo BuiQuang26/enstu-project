@@ -3,23 +3,25 @@ package vn.quang.enstu.helper.mail;
 import net.bytebuddy.utility.RandomString;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-
-import javax.mail.SendFailedException;
 
 @Service
 public class MailSenderService {
 
     private final Logger logger = LogManager.getLogger(MailSenderService.class);
+    private final JavaMailSender mailSender;
 
-    @Autowired
-    private JavaMailSender mailSender;
+    public MailSenderService(
+            JavaMailSender mailSender
+    ) {
+        this.mailSender = mailSender;
+    }
 
     public String sendOTP(String email) {
         try {
+            logger.info("Sending OTP...");
             String otp = RandomString.make(8);
 
             SimpleMailMessage mailMessage = new SimpleMailMessage();
