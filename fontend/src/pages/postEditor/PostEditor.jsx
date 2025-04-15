@@ -372,6 +372,45 @@ const PostEditor = () => {
         }
     };
 
+    const handleHighlight = () => {
+        const textarea = textareaRef.current;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = textContent.slice(start, end);
+
+        if (selectedText) {
+            let newText;
+            let newStart, newEnd;
+
+            // Kiểm tra trường hợp bôi đen cả **text** hoặc chỉ text trong **text**
+            const isBoldSelected = selectedText.startsWith('`') && selectedText.endsWith('`') && selectedText.length >= 2;
+            const isBoldAround = textContent.slice(start - 1, start) === '`' && textContent.slice(end, end + 1) === '`' && !isBoldSelected;
+
+            if (isBoldSelected) {
+                // Bôi đen cả `text`: xóa '`' ở hai đầu
+                newText = textContent.slice(0, start) + selectedText.slice(1, -1) + textContent.slice(end);
+                newStart = start;
+                newEnd = end - 2; // Giảm 2 vì xóa '`'
+            } else if (isBoldAround) {
+                // Bôi đen text trong `text`: xóa '`' ở ngoài
+                newText = textContent.slice(0, start - 1) + selectedText + textContent.slice(end + 1);
+                newStart = start - 2;
+                newEnd = end - 2;
+            } else {
+                // Thêm in đậm: thêm ** ở hai đầu
+                newText = textContent.slice(0, start) + `\`${selectedText}\`` + textContent.slice(end);
+                newStart = start;
+                newEnd = end + 2; // Tăng 2 vì thêm **
+            }
+
+            setTextContent(newText);
+            setTimeout(() => {
+                textarea.selectionStart = newStart;
+                textarea.selectionEnd = newEnd;
+            }, 0);
+        }
+    }
+
     const handleStrikethrough = () => {
         const textarea = textareaRef.current;
         const start = textarea.selectionStart;
@@ -519,6 +558,146 @@ const PostEditor = () => {
         }
     };
 
+    const handleQuoting = () => {
+        const textarea = textareaRef.current;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = textContent.slice(start, end);
+
+        if (selectedText) {
+            let newText;
+            let newStart = start;
+            let newEnd = end;
+
+            // Tách các dòng
+            const lines = selectedText.split('\n');
+            let allLinesHaveBullet = true;
+
+            // Kiểm tra xem tất cả các dòng đã có * chưa
+            for (const line of lines) {
+                if (line !== '> ' && !line.trim().startsWith('> ')) {
+                    allLinesHaveBullet = false;
+                    break;
+                }
+            }
+
+            // Xử lý từng dòng
+            const newLines = lines.map((line) => {
+                if (!line.trim()) return `> ${line}`;
+                if (allLinesHaveBullet) {
+                    // Bỏ * nếu đã có
+                    console.log(line.replace(/^> /, ''));
+                    return line.replace(/^> /, '');
+                } else {
+                    // Thêm * nếu chưa có
+                    return `> ${line}`;
+                }
+            });
+
+            // Tính toán vị trí con trỏ mới
+            if (allLinesHaveBullet) {
+                newEnd -= lines.reduce((sum, line) => sum + (line.trim().startsWith('> ') ? 2 : 0), 0);
+            } else {
+                newEnd += lines.reduce((sum, line) => sum + (line.trim() ? 2 : 0), 0);
+            }
+
+            // Ghép lại văn bản
+            newText = textContent.slice(0, start) + newLines.join('\n') + textContent.slice(end);
+            setTextContent(newText);
+
+            setTimeout(() => {
+                textarea.selectionStart = newStart;
+                textarea.selectionEnd = newEnd;
+            }, 0);
+        }
+    }
+
+    const handleCodeBlock = () => {
+        const textarea = textareaRef.current;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        let selectedText = textContent.slice(start, end);
+
+        if (selectedText) {
+            let newText;
+            let newStart = start;
+            let newEnd = end;
+
+            // Kiểm tra xem tất cả các dòng đã có ``` chưa
+            const isCodeBlockSelected = selectedText.startsWith('```\n') && selectedText.endsWith('\n```') && selectedText.length >= 10;
+            const isCodeBlockAround = textContent.slice(start - 5, start) === '\n```' && textContent.slice(end, end + 5) === '\n```' && !isCodeBlockSelected;
+
+            if (isCodeBlockSelected) {
+                // Bôi đen cả ```\ntext\n```: xóa \n``` ở hai đầu
+                newText = textContent.slice(0, start) + selectedText.slice(5, -5) + textContent.slice(end);
+                newStart = start;
+                newEnd = end - 10; // Giảm 6 vì xóa ```
+            } else if (isCodeBlockAround) {
+                // Bôi đen text trong ```\ntext\n```: xóa ```\n ở ngoài
+                newText = textContent.slice(0, start - 5) + selectedText + textContent.slice(end + 5);
+                newStart = start - 5;
+                newEnd = end - 5;
+            } else {
+                // Thêm in đậm: thêm ``` ở hai đầu
+                selectedText = selectedText.endsWith('\n') ? selectedText : selectedText += '\n';
+                selectedText = selectedText.startsWith('\n') ? selectedText : '\n' + selectedText;
+
+                newText = textContent.slice(0, start) + `\`\`\`${selectedText}\`\`\`` + textContent.slice(end);
+                newStart = start;
+                newEnd = end + 10; // Tăng 10 vì thêm ```
+            }
+
+            setTextContent(newText);
+            setTimeout(() => {
+                textarea.selectionStart = newStart;
+                textarea.selectionEnd = newEnd;
+            }, 0);
+        }
+    }
+
+    const handleLink = () => {
+        const textarea = textareaRef.current;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selectedText = textContent.slice(start, end);
+
+        if (selectedText) {
+            let newText;
+            let newStart = start;
+            let newEnd = end;
+
+            // Kiểm tra xem tất cả các dòng đã có [text](url) chưa
+            const isLinkSelected = selectedText.startsWith('[') && selectedText.includes('](') && selectedText.endsWith(')') && selectedText.length >= 10;
+            const isLinkAround = textContent.slice(start - 1, start) === '[' && textContent.slice(end, end + 1) === ')' && !isLinkSelected;
+
+            if (isLinkSelected) {
+                // Bôi đen cả [text](url): xóa [text](url)
+                newText = textContent.slice(0, start) + selectedText.slice(1, -1) + textContent.slice(end);
+                newStart = start;
+                newEnd = end - 4; // Giảm 4 vì xóa [text](url)
+            } else if (isLinkAround) {
+                // Bôi đen text trong [text](url): xóa [text] ở ngoài
+                newText = textContent.slice(0, start - 1) + selectedText + textContent.slice(end + 1);
+                newStart = start - 1;
+                newEnd = end - 1;
+            } else {
+                // Thêm link: thêm [text](url) ở hai đầu
+                const url = prompt("Nhập URL:");
+                if (url) {
+                    newText = textContent.slice(0, start) + `[${selectedText}](${url})` + textContent.slice(end);
+                    newStart = start;
+                    newEnd = end + url.length + 4; // Tăng độ dài của URL
+                }
+            }
+
+            setTextContent(newText);
+            setTimeout(() => {
+                textarea.selectionStart = newStart;
+                textarea.selectionEnd = newEnd;
+            }, 0);
+        }
+    }
+
     return (
         <div className="post-editor">
             {!isAuth && <Navigate to={"/login"} />}
@@ -604,32 +783,16 @@ const PostEditor = () => {
                 </div>
                 <div className="form-input-nav-editor">
                     <ul className="nav-editor">
-                        <li
-                            className="nav-editor-item"
+                        <li className="nav-editor-item"
                             onMouseOver={onMouseMoveTextStyle}
                             onMouseOut={onMouseMoveOutTextStyle}
-                            onClick={() => {
-                                setHoverTextStyle(false);
-                            }}
-                        >
+                            onClick={() => {setHoverTextStyle(false);}}>
                             <i className="bi bi-fonts"></i>
-                            <ul
-                                className={`sub-nav-editor ${
-                                    hoverTextStyle ? "" : "hidden"
-                                }`}
-                            >
-                                <li className="sub-editor-item h1" onClick={() => handleHeading(1)}>
-                                    H1
-                                </li>
-                                <li className="sub-editor-item h2" onClick={() => handleHeading(2)}>
-                                    H2
-                                </li>
-                                <li className="sub-editor-item h3" onClick={() => handleHeading(3)}>
-                                    H3
-                                </li>
-                                <li className="sub-editor-item h4" onClick={() => handleHeading(4)}>
-                                    H4
-                                </li>
+                            <ul className={`sub-nav-editor ${hoverTextStyle ? "" : "hidden"}`}>
+                                <li className="sub-editor-item h1" onClick={() => handleHeading(1)}>H1</li>
+                                <li className="sub-editor-item h2" onClick={() => handleHeading(2)}>H2</li>
+                                <li className="sub-editor-item h3" onClick={() => handleHeading(3)}>H3</li>
+                                <li className="sub-editor-item h4" onClick={() => handleHeading(4)}>H4</li>
                             </ul>
                         </li>
                         <li className="nav-editor-item" onClick={handleBold}>
@@ -644,52 +807,16 @@ const PostEditor = () => {
                         <li className="nav-editor-item" onClick={handleUnorderedList}>
                             <i className="bi bi-list-ul"></i>
                         </li>
-                        <li
-                            className="nav-editor-item"
-                            onClick={() => {
-                                setTextContent(
-                                    `${textContent}${
-                                        textContent ? "\n\n> Text" : "> Text"
-                                    }`
-                                );
-                            }}
-                        >
+                        <li className="nav-editor-item" onClick={handleQuoting}>
                             <i className="bi bi-blockquote-left"></i>
                         </li>
-                        <li
-                            className="nav-editor-item"
-                            onClick={() => {
-                                setTextContent(
-                                    `${textContent}${
-                                        textContent ? " `text`" : "`text`"
-                                    }`
-                                );
-                            }}
-                        >
+                        <li className="nav-editor-item" onClick={handleHighlight}>
                             <i className="bi bi-code"></i>
                         </li>
-                        <li
-                            className="nav-editor-item"
-                            onClick={() => {
-                                setTextContent(
-                                    `${textContent}${
-                                        textContent
-                                            ? "\n```html \n<div>element</div>\n```"
-                                            : "```html \n<div>element</div>\n```"
-                                    }`
-                                );
-                            }}
-                        >
+                        <li className="nav-editor-item" onClick={handleCodeBlock}>
                             <i className="bi bi-code-slash"></i>
                         </li>
-                        <li
-                            className="nav-editor-item"
-                            onClick={() => {
-                                setTextContent(
-                                    `${textContent}${"[google](http://www.google.com)"}`
-                                );
-                            }}
-                        >
+                        <li className="nav-editor-item" onClick={handleLink}>
                             <i className="bi bi-link"></i>
                         </li>
                         {!post_id && (
